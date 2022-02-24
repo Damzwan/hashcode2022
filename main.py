@@ -18,10 +18,11 @@ class Project:
         self.roles = roles # List of tuples (skill, level)
         self.peopleAssigned = []
 
-
+case = "q"
 def readInput():
     print("Input yayaya")
-    with open("data/" + input() + ".txt") as f:
+    global case; case = input()
+    with open("data/" + case + ".txt") as f:
         people = []
         projects = []
         first = f.readline()
@@ -48,10 +49,7 @@ def readInput():
     return people, projects
 
 
-def writeOutput(intersections):
-    open('o.txt', 'w').close()
-    with open("o.txt", "a") as f:
-        pass
+
 
 
 totalScore = 0
@@ -60,8 +58,6 @@ def assignProject(currentDay, project, peopleAreObjects): #peopleROles is llijst
         personSkillLevel = person.skills.get(project.roles[index][0], 0)
         if project.roles[index][1] > personSkillLevel + 1 or person.busyUntil > currentDay:
             print("uh oh dumbo")
-            print(project.roles[index][1])
-            print(personSkillLevel + 1)
             exit()
         person.busyUntil = currentDay + project.timeNeeded
         if personSkillLevel <= project.roles[index][1]:
@@ -79,7 +75,6 @@ def canDo(person, role):
 
 
 def recursiveProjectFinder(peopleLeft, rolesLeft):
-    print("Doing recursive with ", peopleLeft, "and roles", rolesLeft)
     if len(rolesLeft) == 0:
         return []
     for index, person in enumerate(peopleLeft):
@@ -98,13 +93,14 @@ def masterAlgorithm(people, projects):
     while any([p.busyUntil > currentDay for p in people]) or someoneBusyYesterday:
         someoneBusyYesterday = any([p.busyUntil > currentDay for p in people])
         currentDay += 1
+        print("day ", currentDay)
 
         for projectToCheck in projects:
-            print("checking project" + projectToCheck.name)
+            # print("checking project" + projectToCheck.name)
             if len(people) < len(projectToCheck.roles):
                 continue
             reco = recursiveProjectFinder(people, projectToCheck.roles)
-            print("found", reco)
+            # print("found", reco)
             if reco is not None:
                 assignProject(currentDay, projectToCheck, reco)
                 projectAssignments.append(projectToCheck)
@@ -112,8 +108,14 @@ def masterAlgorithm(people, projects):
         
     return projectAssignments
 
+def writeOutput(projects):
+    open('o' + case + '.txt', 'w').close()
+    with open("o.txt", "a") as f:
+        f.write(str(len(projects)) + "\n")
+        for project in projects:
+            f.write(project.name + "\n" + " ".join([x.name for x in project.peopleAssigned]) + "\n")
 
 if __name__ == "__main__":
     people, projects = readInput()
     result = masterAlgorithm(people, projects)
-    print(result)
+    writeOutput(result)
