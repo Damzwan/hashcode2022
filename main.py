@@ -1,5 +1,6 @@
 import time
 
+
 class Person:
     def __init__(self, name, skills):
         self.name = name
@@ -7,9 +8,11 @@ class Person:
         self.busyUntil = -1
 
     def __repr__(self):
-         return self.name
+        return self.name
+
     def __str__(self):
-         return self.name
+        return self.name
+
 
 class Project:
     def __init__(self, name, timeNeeded, score, bestBefore, roles):
@@ -17,13 +20,17 @@ class Project:
         self.bestBefore = bestBefore
         self.timeNeeded = timeNeeded
         self.score = score
-        self.roles = roles # List of tuples (skill, level)
+        self.roles = roles  # List of tuples (skill, level)
         self.peopleAssigned = []
 
+
 case = "q"
+
+
 def readInput():
     print("Input yayaya")
-    global case; case = input()
+    global case;
+    case = input()
     with open("data/" + case + ".txt") as f:
         people = []
         projects = []
@@ -51,11 +58,11 @@ def readInput():
     return people, projects
 
 
-
-
-
 totalScore = 0
-def assignProject(currentDay, project, peopleAreObjects): #peopleROles is llijst vna mensen in volgorde van project skills :)
+
+
+def assignProject(currentDay, project,
+                  peopleAreObjects):  # peopleROles is llijst vna mensen in volgorde van project skills :)
     for index, person in enumerate(peopleAreObjects):
         personSkillLevel = person.skills.get(project.roles[index][0], 0)
         if project.roles[index][1] > personSkillLevel + 1 or person.busyUntil > currentDay:
@@ -72,9 +79,11 @@ def assignProject(currentDay, project, peopleAreObjects): #peopleROles is llijst
 
 def assignRecursive(people, projects):
     pass
-            
+
+
 def canDo(person, role):
     return person.skills.get(role[0], 0) >= role[1]
+
 
 def recursiveProjectFinder(peopleTaken, rolesLeft):
     if len(rolesLeft) == 0:
@@ -84,7 +93,7 @@ def recursiveProjectFinder(peopleTaken, rolesLeft):
     available_people = [v for k, v in available_people.items() if int(k) >= rolesLeft[0][1]]
     available_people = [item for sublist in available_people for item in sublist]
     available_people = [person for person in available_people if
-                        person.busyUntil <= currentDay and person not in peopleTaken]
+                        person.busyUntil < currentDay and person not in peopleTaken]
 
     for index, person in enumerate(available_people):
         canFinish = recursiveProjectFinder(peopleTaken + [person], rolesLeft[1:])
@@ -92,9 +101,13 @@ def recursiveProjectFinder(peopleTaken, rolesLeft):
             return [person] + canFinish
     return None
 
+
 currentDay = -1
+
+
 def getAvailablePeople(people):
     return [p for p in people if p.busyUntil <= currentDay]
+
 
 def masterAlgorithm(people, projects):
     global currentDay
@@ -112,14 +125,15 @@ def masterAlgorithm(people, projects):
             continue
 
         amountAvailableLastDay = len(availablePeople)
-        timeStr =  "("+str(round(time.time()-startTime))+"s)"
-        print("[day " + str(currentDay) + "]", "projects left:", len(projects), "people available:", len(availablePeople), timeStr)
+        timeStr = "(" + str(round(time.time() - startTime)) + "s)"
+        print("[day " + str(currentDay) + "]", "projects left:", len(projects), "people available:",
+              len(availablePeople), timeStr)
 
         for projectToCheck in projects:
             # print("checking project" + projectToCheck.name)
             if amountAvailableToday < len(projectToCheck.roles):
                 continue
-            reco = recursiveProjectFinder(availablePeople, projectToCheck.roles)
+            reco = recursiveProjectFinder([], projectToCheck.roles)
             # print("found", reco)
             if reco is not None:
                 assignProject(currentDay, projectToCheck, reco)
@@ -130,6 +144,7 @@ def masterAlgorithm(people, projects):
 
     return projectAssignments
 
+
 def writeOutput(projects):
     open('o' + case + '.txt', 'w').close()
     with open("o" + case + ".txt", "a") as f:
@@ -137,7 +152,9 @@ def writeOutput(projects):
         for project in projects:
             f.write(project.name + "\n" + " ".join([x.name for x in project.peopleAssigned]) + "\n")
 
+
 startTime = -1
+
 
 def organize_people(people: [Person]):
     organizedPeople = {}
