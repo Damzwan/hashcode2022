@@ -1,5 +1,5 @@
 import time
-
+from random import randint
 
 class Person:
     def __init__(self, name, skills):
@@ -8,11 +8,9 @@ class Person:
         self.busyUntil = -1
 
     def __repr__(self):
-        return self.name
-
+         return self.name
     def __str__(self):
-        return self.name
-
+         return self.name
 
 class Project:
     def __init__(self, name, timeNeeded, score, bestBefore, roles):
@@ -20,17 +18,14 @@ class Project:
         self.bestBefore = bestBefore
         self.timeNeeded = timeNeeded
         self.score = score
-        self.roles = roles  # List of tuples (skill, level)
+        self.roles = roles # List of tuples (skill, level)
         self.peopleAssigned = []
-
+        self.lastCheckDay = randint(0, 25) * -1
 
 case = "q"
-
-
 def readInput():
     print("Input yayaya")
-    global case;
-    case = input()
+    global case; case = input()
     with open("data/" + case + ".txt") as f:
         people = []
         projects = []
@@ -58,11 +53,11 @@ def readInput():
     return people, projects
 
 
+
+
+
 totalScore = 0
-
-
-def assignProject(currentDay, project,
-                  peopleAreObjects):  # peopleROles is llijst vna mensen in volgorde van project skills :)
+def assignProject(currentDay, project, peopleAreObjects): #peopleROles is llijst vna mensen in volgorde van project skills :)
     for index, person in enumerate(peopleAreObjects):
         personSkillLevel = person.skills.get(project.roles[index][0], 0)
         if project.roles[index][1] > personSkillLevel + 1 or person.busyUntil > currentDay:
@@ -79,8 +74,7 @@ def assignProject(currentDay, project,
 
 def assignRecursive(people, projects):
     pass
-
-
+            
 def canDo(person, role):
     return person.skills.get(role[0], 0) >= role[1]
 
@@ -101,19 +95,19 @@ def recursiveProjectFinder(peopleTaken, rolesLeft):
             return [person] + canFinish
     return None
 
+def getLastDay(projects):
+    return max(project.bestBefore + project.score for project in projects)
 
 currentDay = -1
-
-
 def getAvailablePeople(people):
     return [p for p in people if p.busyUntil <= currentDay]
-
 
 def masterAlgorithm(people, projects):
     global currentDay
     projectAssignments = []
     amountAvailableLastDay = -1
-    while True:
+    lastDay = getLastDay(projects)
+    while currentDay <= lastDay:
         availablePeople = getAvailablePeople(people)
         amountAvailableToday = len(availablePeople)
         currentDay += 1
@@ -125,11 +119,16 @@ def masterAlgorithm(people, projects):
             continue
 
         amountAvailableLastDay = len(availablePeople)
+        timeStr =  "("+str(round(time.time()-startTime))+"s)"
+        print("[day " + str(currentDay) + "/" + str(lastDay) + "]", "projects left:", len(projects), "people available:", len(availablePeople), timeStr)
         timeStr = "(" + str(round(time.time() - startTime)) + "s)"
         print("[day " + str(currentDay) + "]", "projects left:", len(projects), "people available:",
               len(availablePeople), timeStr)
 
         for projectToCheck in projects:
+            if currentDay - projectToCheck.lastCheckDay < 10:
+                continue
+            projectToCheck.lastCheckDay = currentDay
             # print("checking project" + projectToCheck.name)
             if amountAvailableToday < len(projectToCheck.roles):
                 continue
@@ -141,9 +140,8 @@ def masterAlgorithm(people, projects):
                 projects.remove(projectToCheck)
                 for pp in reco:
                     availablePeople.remove(pp)
-
+        
     return projectAssignments
-
 
 def writeOutput(projects):
     open('o' + case + '.txt', 'w').close()
@@ -151,7 +149,6 @@ def writeOutput(projects):
         f.write(str(len(projects)) + "\n")
         for project in projects:
             f.write(project.name + "\n" + " ".join([x.name for x in project.peopleAssigned]) + "\n")
-
 
 startTime = -1
 
@@ -174,8 +171,6 @@ def organize_people(people: [Person]):
 if __name__ == "__main__":
     startTime = time.time()
     people, projects = readInput()
-    organized_people = organize_people(people)
-    print(organized_people)
-
+    projects.sort(key=lambda x: x.bestBefore)
     result = masterAlgorithm(people, projects)
     writeOutput(result)
