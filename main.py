@@ -171,6 +171,7 @@ def organize_people(people: [Person]):
 if __name__ == "__main__":
     startTime = time.time()
     people, projects = readInput()
+    organized_people = organize_people(people)
     projects.sort(key=lambda x: x.bestBefore)
     result = masterAlgorithm(people, projects)
     writeOutput(result)
