@@ -1,3 +1,5 @@
+import time
+
 class Person:
     def __init__(self, name, skills):
         self.name = name
@@ -57,6 +59,7 @@ def assignProject(currentDay, project, peopleAreObjects): #peopleROles is llijst
     for index, person in enumerate(peopleAreObjects):
         personSkillLevel = person.skills.get(project.roles[index][0], 0)
         if project.roles[index][1] > personSkillLevel + 1 or person.busyUntil > currentDay:
+            print(project.roles[index][1] > personSkillLevel + 1, person.busyUntil > currentDay)
             print("uh oh dumbo")
             exit()
         person.busyUntil = currentDay + project.timeNeeded
@@ -71,8 +74,7 @@ def assignRecursive(people, projects):
     pass
             
 def canDo(person, role):
-    return person.busyUntil <= currentDay and person.skills.get(role[0], 0) >= role[1]
-
+    return person.skills.get(role[0], 0) >= role[1]
 
 def recursiveProjectFinder(peopleLeft, rolesLeft):
     if len(rolesLeft) == 0:
@@ -84,38 +86,54 @@ def recursiveProjectFinder(peopleLeft, rolesLeft):
                 return [person] + canFinish
     return None
 
-
 currentDay = -1
+def getAvailablePeople(people):
+    return [p for p in people if p.busyUntil <= currentDay]
+
 def masterAlgorithm(people, projects):
     global currentDay
     projectAssignments = []
-    someoneBusyYesterday = True
-    while any([p.busyUntil > currentDay for p in people]) or someoneBusyYesterday:
-        someoneBusyYesterday = any([p.busyUntil > currentDay for p in people])
+    amountAvailableLastDay = -1
+    while True:
+        availablePeople = getAvailablePeople(people)
+        amountAvailableToday = len(availablePeople)
         currentDay += 1
-        print("day ", currentDay)
+        if amountAvailableToday == len(people) and amountAvailableLastDay == len(people):
+            break
+
+        if amountAvailableToday == amountAvailableLastDay:
+            amountAvailableLastDay = amountAvailableToday
+            continue
+
+        amountAvailableLastDay = len(availablePeople)
+        timeStr =  "("+str(round(time.time()-startTime))+"s)"
+        print("[day " + str(currentDay) + "]", "projects left:", len(projects), "people available:", len(availablePeople), timeStr)
 
         for projectToCheck in projects:
             # print("checking project" + projectToCheck.name)
-            if len(people) < len(projectToCheck.roles):
+            if amountAvailableToday < len(projectToCheck.roles):
                 continue
-            reco = recursiveProjectFinder(people, projectToCheck.roles)
+            reco = recursiveProjectFinder(availablePeople, projectToCheck.roles)
             # print("found", reco)
             if reco is not None:
                 assignProject(currentDay, projectToCheck, reco)
                 projectAssignments.append(projectToCheck)
                 projects.remove(projectToCheck)
+                for pp in reco:
+                    availablePeople.remove(pp)
         
     return projectAssignments
 
 def writeOutput(projects):
     open('o' + case + '.txt', 'w').close()
-    with open("o.txt", "a") as f:
+    with open("o" + case + ".txt", "a") as f:
         f.write(str(len(projects)) + "\n")
         for project in projects:
             f.write(project.name + "\n" + " ".join([x.name for x in project.peopleAssigned]) + "\n")
 
+startTime = -1
 if __name__ == "__main__":
+    startTime = time.time()
     people, projects = readInput()
     result = masterAlgorithm(people, projects)
     writeOutput(result)
