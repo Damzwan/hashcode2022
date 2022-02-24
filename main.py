@@ -5,9 +5,11 @@ class Person:
         self.busyUntil = -1
 
     def __repr__(self):
-         return self.name
+        return self.name
+
     def __str__(self):
-         return self.name
+        return self.name
+
 
 class Project:
     def __init__(self, name, timeNeeded, score, bestBefore, roles):
@@ -15,13 +17,17 @@ class Project:
         self.bestBefore = bestBefore
         self.timeNeeded = timeNeeded
         self.score = score
-        self.roles = roles # List of tuples (skill, level)
+        self.roles = roles  # List of tuples (skill, level)
         self.peopleAssigned = []
 
+
 case = "q"
+
+
 def readInput():
     print("Input yayaya")
-    global case; case = input()
+    global case;
+    case = input()
     with open("data/" + case + ".txt") as f:
         people = []
         projects = []
@@ -49,14 +55,15 @@ def readInput():
     return people, projects
 
 
-
-
-
 totalScore = 0
-def assignProject(currentDay, project, peopleAreObjects): #peopleROles is llijst vna mensen in volgorde van project skills :)
+
+
+def assignProject(currentDay, project,
+                  peopleAreObjects):  # peopleROles is llijst vna mensen in volgorde van project skills :)
     for index, person in enumerate(peopleAreObjects):
         personSkillLevel = person.skills.get(project.roles[index][0], 0)
-        if project.roles[index][1] > personSkillLevel + 1 or person.busyUntil > currentDay:
+        print(project.roles[index][1], personSkillLevel)
+        if project.roles[index][1] > personSkillLevel or person.busyUntil > currentDay:
             print("uh oh dumbo")
             exit()
         person.busyUntil = currentDay + project.timeNeeded
@@ -69,23 +76,32 @@ def assignProject(currentDay, project, peopleAreObjects): #peopleROles is llijst
 
 def assignRecursive(people, projects):
     pass
-            
+
+
 def canDo(person, role):
     return person.busyUntil <= currentDay and person.skills.get(role[0], 0) >= role[1]
 
 
-def recursiveProjectFinder(peopleLeft, rolesLeft):
+def recursiveProjectFinder(peopleTaken, rolesLeft):
     if len(rolesLeft) == 0:
         return []
-    for index, person in enumerate(peopleLeft):
-        if canDo(person, rolesLeft[0]):
-            canFinish = recursiveProjectFinder(peopleLeft[:index] + peopleLeft[index+1:], rolesLeft[1:])
-            if canFinish is not None:
-                return [person] + canFinish
+
+    available_people = organized_people[rolesLeft[0][0]]
+    available_people = [v for k, v in available_people.items() if int(k) >= rolesLeft[0][1]]
+    available_people = [item for sublist in available_people for item in sublist]
+    available_people = [person for person in available_people if
+                        person.busyUntil <= currentDay and person not in peopleTaken]
+
+    for index, person in enumerate(available_people):
+        canFinish = recursiveProjectFinder(peopleTaken + [person], rolesLeft[1:])
+        if canFinish is not None:
+            return [person] + canFinish
     return None
 
 
 currentDay = -1
+
+
 def masterAlgorithm(people, projects):
     global currentDay
     projectAssignments = []
@@ -99,14 +115,14 @@ def masterAlgorithm(people, projects):
             # print("checking project" + projectToCheck.name)
             if len(people) < len(projectToCheck.roles):
                 continue
-            reco = recursiveProjectFinder(people, projectToCheck.roles)
-            # print("found", reco)
+            reco = recursiveProjectFinder([], projectToCheck.roles)
             if reco is not None:
                 assignProject(currentDay, projectToCheck, reco)
                 projectAssignments.append(projectToCheck)
                 projects.remove(projectToCheck)
-        
+
     return projectAssignments
+
 
 def writeOutput(projects):
     open('o' + case + '.txt', 'w').close()
@@ -115,7 +131,26 @@ def writeOutput(projects):
         for project in projects:
             f.write(project.name + "\n" + " ".join([x.name for x in project.peopleAssigned]) + "\n")
 
+
+def organize_people(people: [Person]):
+    organizedPeople = {}
+    for person in people:
+        for skill, score in person.skills.items():
+            if skill not in organizedPeople:
+                organizedPeople[skill] = {}
+
+            if score not in organizedPeople[skill]:
+                organizedPeople[skill][score] = []
+
+            organizedPeople[skill][score].append(person)
+
+    return organizedPeople
+
+
 if __name__ == "__main__":
     people, projects = readInput()
+    organized_people = organize_people(people)
+    print(organized_people)
+
     result = masterAlgorithm(people, projects)
     writeOutput(result)
