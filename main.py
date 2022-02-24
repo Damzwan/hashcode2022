@@ -1,4 +1,5 @@
 import time
+from random import randint
 
 class Person:
     def __init__(self, name, skills):
@@ -19,6 +20,7 @@ class Project:
         self.score = score
         self.roles = roles # List of tuples (skill, level)
         self.peopleAssigned = []
+        self.lastCheckDay = randint(0, 25) * -1
 
 case = "q"
 def readInput():
@@ -86,6 +88,9 @@ def recursiveProjectFinder(peopleLeft, rolesLeft):
                 return [person] + canFinish
     return None
 
+def getLastDay(projects):
+    return max(project.bestBefore + project.score for project in projects)
+
 currentDay = -1
 def getAvailablePeople(people):
     return [p for p in people if p.busyUntil <= currentDay]
@@ -94,7 +99,8 @@ def masterAlgorithm(people, projects):
     global currentDay
     projectAssignments = []
     amountAvailableLastDay = -1
-    while True:
+    lastDay = getLastDay(projects)
+    while currentDay <= lastDay:
         availablePeople = getAvailablePeople(people)
         amountAvailableToday = len(availablePeople)
         currentDay += 1
@@ -107,9 +113,12 @@ def masterAlgorithm(people, projects):
 
         amountAvailableLastDay = len(availablePeople)
         timeStr =  "("+str(round(time.time()-startTime))+"s)"
-        print("[day " + str(currentDay) + "]", "projects left:", len(projects), "people available:", len(availablePeople), timeStr)
+        print("[day " + str(currentDay) + "/" + str(lastDay) + "]", "projects left:", len(projects), "people available:", len(availablePeople), timeStr)
 
         for projectToCheck in projects:
+            if currentDay - projectToCheck.lastCheckDay < 10:
+                continue
+            projectToCheck.lastCheckDay = currentDay
             # print("checking project" + projectToCheck.name)
             if amountAvailableToday < len(projectToCheck.roles):
                 continue
@@ -135,5 +144,6 @@ startTime = -1
 if __name__ == "__main__":
     startTime = time.time()
     people, projects = readInput()
+    projects.sort(key=lambda x: x.bestBefore)
     result = masterAlgorithm(people, projects)
     writeOutput(result)
